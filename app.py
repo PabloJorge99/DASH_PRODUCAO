@@ -1,38 +1,46 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from data_processor import DataProcessor
 
 app = Flask(__name__)
+data_processor = DataProcessor()
 
-# Dados organizados por semana (com grafia corrigida)
-planos_por_semana = {
-    "Semana 1": [
-        {"id": "25101", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 85, "progresso_producao": 45},
-        {"id": "25201", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 60, "progresso_producao": 30},
-        {"id": "25111", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 95, "progresso_producao": 75},
-        {"id": "25221", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 68, "progresso_producao": 39}
-    ],
-    "Semana 2": [
-        {"id": "25301", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 92, "progresso_producao": 78},
-        {"id": "25401", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 45, "progresso_producao": 20},
-        {"id": "25131", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 85, "progresso_producao": 45},
-        {"id": "25241", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 80, "progresso_producao": 35}
-    ],
-    "Semana 3": [
-        {"id": "25501", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 100, "progresso_producao": 95},
-        {"id": "25601", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 30, "progresso_producao": 10},
-        {"id": "25151", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 85, "progresso_producao": 55},
-        {"id": "25261", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 50, "progresso_producao": 30}
-    ],
-    "Semana 4": [
-        {"id": "25701", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 75, "progresso_producao": 60},
-        {"id": "25801", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 80, "progresso_producao": 25},
-        {"id": "25771", "tipo": "plaina", "imagem": "plaina.png", "progresso_planejamento": 98, "progresso_producao": 20},
-        {"id": "25881", "tipo": "rasthor", "imagem": "rasthor.png", "progresso_planejamento": 100, "progresso_producao": 25}
-    ]
-}
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def dashboard():
-    return render_template('dashboard.html', semanas=planos_por_semana)
+    # Carrega dados a cada requisição para pegar atualizações
+    data_processor.load_data()
+    
+    semanas = {
+        "Semana 1": [],
+        "Semana 2": [],
+        "Semana 3": [],
+        "Semana 4": []
+    }
+
+    if request.method == 'POST':
+        input_lotes = request.form.get('lotes', '')
+        lotes = [l.strip() for l in input_lotes.split(',') if l.strip()][:16]
+
+        for i, plano_id in enumerate(lotes):
+            plano_data = data_processor.get_dados_plano(plano_id)
+            
+            semana = f"Semana {(i // 4) + 1}"
+            semanas[semana].append(plano_data)
+            
+            # Debug detalhado
+            print(f"\n📌 Plano {plano_id}:")
+            print(f"🔹 Planejamento: {plano_data['progresso_planejamento']}%")
+            print(f"   - SOCs: {plano_data['detalhes_planejamento']['total_soc']} "
+                  f"({plano_data['detalhes_planejamento']['soc_baixa']} baixa)")
+            print(f"   - OCs: {plano_data['detalhes_planejamento']['total_oc']} "
+                  f"({plano_data['detalhes_planejamento']['oc_fechadas']} fechadas)")
+            print(f"🔹 Produção: {plano_data['progresso_producao']}%")
+            print(f"   - OFs: {plano_data['detalhes_producao']['total_of']} "
+                  f"({plano_data['detalhes_producao']['of_fechada']} fechadas)")
+
+        # Salva SOC atual como histórico para próxima comparação
+        data_processor.save_current_soc_as_history()
+
+    return render_template('dashboard.html', semanas=semanas)
 
 if __name__ == '__main__':
     app.run(debug=True)
