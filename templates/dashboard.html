@@ -7,7 +7,7 @@
     <style>
         :root {
             --cor-plano: #4e73df;
-            --cor-rasthor: #1cc88a;
+            --cor-rasthor: #393a02;
             --sombra: 0 4px 6px rgba(0, 0, 0, 0.1);
             --borda-radius: 10px;
         }
@@ -19,7 +19,42 @@
             padding: 20px;
             color: #5a5c69;
         }
-        
+
+        form {
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: var(--borda-radius);
+            box-shadow: var(--sombra);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: var(--borda-radius);
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: var(--cor-plano);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--borda-radius);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3756c4;
+        }
+
         .dashboard {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -35,7 +70,7 @@
         .semana h2 {
             text-align: center;
             margin-bottom: 15px;
-            color: #4e73df;
+            color: #d1b01c;
             font-size: 1.2rem;
         }
         
@@ -113,6 +148,7 @@
             height: 100%;
             border-radius: 9px;
             position: relative;
+            background: linear-gradient(to right, #4facfe, #00f2fe); /* Cor visível */
         }
         
         .planejamento .progress-fill {
@@ -120,7 +156,7 @@
         }
         
         .producao .progress-fill {
-            background: linear-gradient(90deg, #1cc88a 0%, #13855c 100%);
+            background: linear-gradient(90deg, #bcc81c 0%, #708513 100%);
         }
         
         .progress-value {
@@ -148,6 +184,14 @@
     </style>
 </head>
 <body>
+
+    <!-- FORMULÁRIO PARA ESCOLHER OS PLANOS -->
+    <form method="POST">
+        <label for="lotes">Digite os 16 planos separados por vírgula:</label><br>
+        <input type="text" id="lotes" name="lotes" placeholder="Ex: 25101,25109,25111,...">
+        <button type="submit">Atualizar Dashboard</button>
+    </form>
+
     <div class="dashboard">
         {% for semana, planos in semanas.items() %}
         <div class="semana">
@@ -156,7 +200,9 @@
                 {% for plano in planos %}
                 <div class="card {% if plano.tipo == 'plaina' %}plano{% else %}rasthor{% endif %}">
                     <div class="card-id">{{ plano.id }}</div>
-                    <img src="{{ url_for('static', filename=plano.imagem) }}" alt="{{ plano.tipo }}" class="card-imagem">
+                    {% if plano.imagem %}
+                        <img src="{{ url_for('static', filename=plano.imagem) }}" alt="{{ plano.tipo }}" class="card-imagem">
+                    {% endif %}
                     
                     <div class="progress-container">
                         <div class="progress-label">
