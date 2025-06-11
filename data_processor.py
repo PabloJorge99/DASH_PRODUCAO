@@ -9,9 +9,9 @@ class DataProcessor:
         
     def load_data(self):
         """Carrega os dados das planilhas"""
-        self.df_of = pd.read_excel("data/ofs.xlsx")
-        self.df_soc = pd.read_excel("data/soc.xlsx")
-        self.df_oc = pd.read_excel("data/OC.xlsx")
+        self.df_of = pd.read_excel("data/raw/ofs.xlsx")
+        self.df_soc = pd.read_excel("data/raw/soc.xlsx")
+        self.df_oc = pd.read_excel("data/raw/OC.xlsx")
         
         # Debug: Verificar colunas disponíveis
         print("\n🔍 Colunas disponíveis:")
